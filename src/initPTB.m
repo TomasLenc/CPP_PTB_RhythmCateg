@@ -184,11 +184,9 @@ function cfg = initAudio(cfg)
 
             % find output device to use
             idx = find( ...
-                       audioDev.NrInputChannels == cfg.audio.inputChannels && ...
-                       audioDev.NrOutputChannels == cfg.audio.channels && ...
-                       ~cellfun(@isempty, regexp({audioDev.HostAudioAPIName}, ...
-                                                 cfg.audio.deviceName)));
-
+                ~cellfun(@isempty, regexp({audioDev.DeviceName},...
+                                          cfg.audio.deviceName)));
+            
             % save device ID
             cfg.audio.devIdx = audioDev(idx).DeviceIndex;
 
@@ -208,11 +206,16 @@ function cfg = initAudio(cfg)
         % at the begining of the experiment)
         PsychPortAudio('Volume', cfg.audio.pahandle, cfg.audio.initVolume);
 
-        cfg.audio.pushSize  = cfg.audio.fs * 0.010; % ! push N ms only
-
-        cfg.audio.requestOffsetTime = 1; % offset 1 sec
-        cfg.audio.reqsSampleOffset = cfg.audio.requestOffsetTime * cfg.audio.fs;
-
+        % if we're doing capture, we need to initialize buffer with enough space
+        if cfg.audio.playbackMode~=1
+            % allocate N-s buffer
+            bufferSamples = round(cfg.audio.fs * cfg.audio.tapBuffDur); 
+            % preallocate tapping buffer
+            PsychPortAudio('GetAudioData', ...
+                            cfg.audio.pahandle, ...
+                            bufferSamples); 
+        end
+        
     end
 end
 
