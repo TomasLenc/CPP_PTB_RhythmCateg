@@ -64,11 +64,16 @@ function cfg = initPTB(cfg)
 
     % Make sure we have black splash screen
     Screen('Preference', 'VisualDebugLevel', 1);
-
+    
+    % skip sync tests 
+    cfg.skipSyncTests = 1;
+    Screen('Preference', 'SkipSyncTests', cfg.skipSyncTests);
+    
     % Get the screen numbers and draw to the external screen if avaliable
     cfg.screen.idx = max(Screen('Screens'));
 
-    if isfield(cfg.screen, 'resolution')
+    if isfield(cfg.screen, 'resolution') && ...
+            ~any(cellfun(@isempty,cfg.screen.resolution))
         [newWidth, newHeight, newHz] = deal(cfg.screen.resolution{:});
         cfg.screen.oldResolution = Screen('Resolution', cfg.screen.idx, ...
                                           newWidth, newHeight, newHz);
@@ -156,6 +161,8 @@ function initDebug(cfg)
 
     if cfg.debug.transpWin
         PsychDebugWindowConfiguration;
+    else
+        clear Screen
     end
 
 end
